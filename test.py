@@ -32,6 +32,10 @@ def run_test(model, params, device):
 
     print(f"\n=== Test Results ===")
     print(f"Overall accuracy: {correct/n:.4f}  ({correct}/{n})\n")
+    per_class = []
     for i in range(params["num_classes"]):
         acc = class_correct[i] / class_total[i]
+        per_class.append(acc)
         print(f"  Digit {i}: {acc:.4f}  ({class_correct[i]}/{class_total[i]})")
+
+    return {"test_acc": correct / n, "per_class": per_class}

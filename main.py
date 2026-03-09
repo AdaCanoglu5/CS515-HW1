@@ -5,7 +5,7 @@ import torch
 
 from parameters import get_params
 from models.MLP import MLP
-from train import run_training
+from train import run_training, append_csv_row
 from test  import run_test
 
 
@@ -28,6 +28,9 @@ def build_model(params):
         hidden_sizes = params["hidden_sizes"],
         num_classes  = params["num_classes"],
         dropout      = params["dropout"],
+        activation   = params["activation"],
+        use_bn       = params["use_bn"],
+        bn_position  = params["bn_position"],
     )
 
 
@@ -51,7 +54,12 @@ def main():
         run_training(model, params, device)
 
     if params["mode"] in ("test", "both"):
-        run_test(model, params, device)
+        test_results = run_test(model, params, device)
+        append_csv_row(params, {
+            "epoch": -1,
+            "test_acc": test_results["test_acc"],
+            "test_per_class": ",".join(f"{x:.6f}" for x in test_results["per_class"]),
+        })
 
 
 if __name__ == "__main__":

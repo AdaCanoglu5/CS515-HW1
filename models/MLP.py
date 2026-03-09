@@ -2,17 +2,33 @@ import torch.nn as nn
 
 
 class MLP(nn.Module):
-    def __init__(self, input_size, hidden_sizes, num_classes, dropout=0.3):
+    def __init__(
+        self,
+        input_size,
+        hidden_sizes,
+        num_classes,
+        dropout=0.3,
+        activation="relu",
+        use_bn=1,
+        bn_position="pre",
+    ):
         super().__init__()
+        activations = {
+            "relu": nn.ReLU,
+            "gelu": nn.GELU,
+            "tanh": nn.Tanh,
+        }
+        act_cls = activations[activation]
         layers = []
         in_dim = input_size
         for h in hidden_sizes:
-            layers += [
-                nn.Linear(in_dim, h),
-                nn.BatchNorm1d(h),
-                nn.ReLU(),
-                nn.Dropout(dropout),
-            ]
+            layers.append(nn.Linear(in_dim, h))
+            if use_bn and bn_position == "pre":
+                layers.append(nn.BatchNorm1d(h))
+            layers.append(act_cls())
+            if use_bn and bn_position == "post":
+                layers.append(nn.BatchNorm1d(h))
+            layers.append(nn.Dropout(dropout))
             in_dim = h
         layers.append(nn.Linear(in_dim, num_classes))
         self.net = nn.Sequential(*layers)
